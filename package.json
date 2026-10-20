@@ -1,0 +1,21 @@
+{
+  "name": "cmo",
+  "version": "0.0.0",
+  "description": "Dependabot for AI search: opens PRs that get your site cited by ChatGPT, Perplexity and Claude, and proves which ones worked.",
+  "type": "module",
+  "license": "MIT",
+  "bin": { "cmo": "./src/cli.ts" },
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "cmo": "node src/cli.ts",
+    "test": "node --test test/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}
