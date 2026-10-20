@@ -4,14 +4,22 @@
   "description": "Dependabot for AI search: opens PRs that get your site cited by ChatGPT, Perplexity and Claude, and proves which ones worked.",
   "type": "module",
   "license": "MIT",
-  "bin": { "cmo": "./src/cli.ts" },
-  "engines": { "node": ">=24" },
+  "bin": {
+    "cmo": "./src/cli.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "cmo": "node src/cli.ts",
     "test": "node --test test/",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.84",
+    "@ai-sdk/google": "^4.0.101",
+    "@ai-sdk/openai": "^4.0.98",
+    "ai": "^7.0.146",
     "commander": "^14.0.0"
   },
   "devDependencies": {

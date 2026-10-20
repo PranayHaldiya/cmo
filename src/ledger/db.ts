@@ -5,13 +5,18 @@ import { DatabaseSync } from "node:sqlite";
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS citation_checks (
-  id         INTEGER PRIMARY KEY,
-  checked_at TEXT NOT NULL,
-  engine     TEXT NOT NULL,          -- e.g. "openai:gpt-5", "perplexity:sonar"
-  prompt     TEXT NOT NULL,
-  cited      INTEGER NOT NULL,       -- 1 if any of our URLs/brand appeared
-  cited_urls TEXT NOT NULL DEFAULT '[]',
-  competitors TEXT NOT NULL DEFAULT '[]'
+  id          INTEGER PRIMARY KEY,
+  run_id      TEXT NOT NULL DEFAULT '',
+  checked_at  TEXT NOT NULL,
+  engine      TEXT NOT NULL,         -- AI Gateway model id, e.g. "perplexity/sonar"
+  prompt      TEXT NOT NULL,
+  cited       INTEGER NOT NULL,      -- 1 if one of our URLs was a source
+  mentioned   INTEGER NOT NULL DEFAULT 0,
+  cited_urls  TEXT NOT NULL DEFAULT '[]',
+  competitors TEXT NOT NULL DEFAULT '[]',
+  answer      TEXT NOT NULL DEFAULT '',
+  sources     TEXT NOT NULL DEFAULT '[]',
+  cost_usd    REAL
 );
 CREATE TABLE IF NOT EXISTS gsc_daily (
   date        TEXT NOT NULL,
@@ -34,12 +39,17 @@ CREATE INDEX IF NOT EXISTS citation_checks_by_time ON citation_checks (checked_a
 `;
 
 export interface CitationCheck {
+  runId?: string;
   checkedAt: string;
   engine: string;
   prompt: string;
   cited: boolean;
+  mentioned?: boolean;
   citedUrls?: string[];
-  competitors?: string[];
+  competitors?: unknown[];
+  answer?: string;
+  sources?: string[];
+  costUsd?: number;
 }
 
 export interface Window {
@@ -57,8 +67,23 @@ export class Ledger {
 
   recordCitation(c: CitationCheck): void {
     this.db
-      .prepare("INSERT INTO citation_checks (checked_at, engine, prompt, cited, cited_urls, competitors) VALUES (?, ?, ?, ?, ?, ?)")
-      .run(c.checkedAt, c.engine, c.prompt, c.cited ? 1 : 0, JSON.stringify(c.citedUrls ?? []), JSON.stringify(c.competitors ?? []));
+      .prepare(
+        `INSERT INTO citation_checks (run_id, checked_at, engine, prompt, cited, mentioned, cited_urls, competitors, answer, sources, cost_usd)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        c.runId ?? "",
+        c.checkedAt,
+        c.engine,
+        c.prompt,
+        c.cited ? 1 : 0,
+        c.mentioned ? 1 : 0,
+        JSON.stringify(c.citedUrls ?? []),
+        JSON.stringify(c.competitors ?? []),
+        c.answer ?? "",
+        JSON.stringify(c.sources ?? []),
+        c.costUsd ?? null,
+      );
   }
 
   recordFix(fix: { kind: string; url: string; files: string[]; prUrl?: string; openedAt: string }): number {

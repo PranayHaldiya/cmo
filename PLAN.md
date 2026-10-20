@@ -12,7 +12,9 @@ Positioning: the open, repo-native loop of **track → fix PR → prove**. Not a
 ## Milestones
 - [x] M0 URL → page / metadata owner / content file (Next app + pages, Astro), tested on astro.build, vercel/commerce, leerob/site
 - [x] M0 ledger schema + before/after fix impact
-- [ ] M1 `cmo cite`: run a prompt set across engines (AI SDK, BYO keys), detect brand/URL citations, write to ledger
+- [x] M1 `cmo cite`: prompt set × engines with web search (AI Gateway or direct keys), cited vs named detection, competitors, ledger. Verified live on Anthropic.
+- [ ] M1 verify OpenAI, Gemini and Perplexity engines live (needs a gateway key)
+- [ ] M1 repeat runs per prompt (answers vary between runs) and report rates with sample size
 - [ ] M1 `cmo audit`: a small set of AI-readiness checks (llms.txt, robots AI crawlers, JSON-LD, meta), each tied to a located file
 - [ ] M2 `cmo fix`: deterministic fixes (llms.txt, robots, JSON-LD, metadata) applied as edits, then `gh pr create`
 - [ ] M2 Search Console import (daily per-page clicks) into the ledger

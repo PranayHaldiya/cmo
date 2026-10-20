@@ -1,0 +1,12 @@
+{
+  "brand": { "name": "Okara", "domains": ["okara.ai"], "aliases": ["Okara AI"] },
+  "competitors": [
+    { "name": "Jasper", "domains": ["jasper.ai"] },
+    { "name": "Copy.ai", "domains": ["copy.ai"] }
+  ],
+  "prompts": [
+    "What is the best AI CMO tool for a solo SaaS founder?",
+    "Which AI agent can automate SEO, Reddit and X marketing for a startup?",
+    "Recommend AI marketing automation tools for small B2B SaaS teams in 2026."
+  ]
+}
