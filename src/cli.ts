@@ -41,10 +41,12 @@ program
   .option("-c, --config <file>", "config with brand, competitors, prompts and engines", "cmo.config.json")
   .option("--db <file>", "ledger database", ".cmo/ledger.db")
   .option("-e, --engines <ids...>", "override the engines in the config")
+  .option("-n, --runs <n>", "times to ask each engine each prompt", (v) => Number.parseInt(v, 10))
   .option("--json", "print the full summary as JSON")
-  .action(async (opts: { config: string; db: string; engines?: string[]; json?: boolean }) => {
+  .action(async (opts: { config: string; db: string; engines?: string[]; runs?: number; json?: boolean }) => {
     const config = loadConfig(opts.config);
     if (opts.engines) config.engines = opts.engines;
+    if (opts.runs) config.runs = opts.runs;
     const { ask, hasCredentials } = await import("./cite/engines.ts");
     const skipped = config.engines.filter((e) => !hasCredentials(e));
     config.engines = config.engines.filter(hasCredentials);
@@ -52,7 +54,7 @@ program
     if (config.engines.length === 0) process.exit(1);
     mkdirSync(dirname(resolve(opts.db)), { recursive: true });
     const ledger = new Ledger(opts.db);
-    const total = config.engines.length * config.prompts.length;
+    const total = config.engines.length * config.prompts.length * config.runs;
     let done = 0;
     const summary = await runCitations(config, ask, ledger, {
       onResult: (r) => !opts.json && console.error(`[${++done}/${total}] ${mark(r)} ${r.engine}  ${r.prompt}${r.error ? `  (${r.error})` : ""}`),
@@ -69,6 +71,33 @@ program
     }
     const failed = summary.results.filter((r) => r.error).length;
     console.log(`\n${failed ? `${failed} checks failed. ` : ""}Cost: ${summary.results.some((r) => r.costUsd !== undefined) ? `$${summary.costUsd.toFixed(4)}` : "not reported (direct provider keys)"}  Ledger: ${opts.db}`);
+  });
+
+program
+  .command("audit")
+  .description("Check a live site for what keeps AI engines from reading and citing it")
+  .argument("<site>", "site URL, e.g. https://example.com")
+  .option("-r, --root <dir>", "site repository root, to name the files each fix touches")
+  .option("-u, --urls <urls...>", "audit these pages instead of sampling the sitemap")
+  .option("-l, --limit <n>", "pages to sample from the sitemap", (v) => Number.parseInt(v, 10), 20)
+  .option("--json", "print findings as JSON")
+  .action(async (siteUrl: string, opts: { root?: string; urls?: string[]; limit: number; json?: boolean }) => {
+    const [{ snapshot }, { audit }] = await Promise.all([import("./audit/fetch.ts"), import("./audit/checks.ts")]);
+    const snap = await snapshot(siteUrl, { limit: opts.limit, ...(opts.urls && { urls: opts.urls }) });
+    const findings = audit(snap, opts.root ? new SiteMap(resolve(opts.root)) : undefined);
+    if (opts.json) return console.log(JSON.stringify(findings, null, 2));
+
+    const order = { error: 0, warn: 1, info: 2 } as const;
+    findings.sort((a, b) => order[a.severity] - order[b.severity] || a.id.localeCompare(b.id));
+    console.log(`Audited ${snap.pages.length} pages on ${snap.origin}\n`);
+    for (const f of findings) {
+      console.log(`${f.severity.toUpperCase().padEnd(5)} ${f.id.padEnd(26)} ${new URL(f.url).pathname}`);
+      console.log(`      ${f.message}`);
+      if (f.files.length) console.log(`      → ${f.files.join(", ")}`);
+    }
+    const count = (s: string) => findings.filter((f) => f.severity === s).length;
+    console.log(`\n${count("error")} errors, ${count("warn")} warnings, ${count("info")} notes`);
+    if (count("error")) process.exitCode = 1;
   });
 
 function mark(r: CheckResult): string {

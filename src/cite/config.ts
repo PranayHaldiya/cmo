@@ -8,6 +8,8 @@ export interface CmoConfig {
   prompts: string[];
   /** AI Gateway model ids; web search is switched on per provider. */
   engines: string[];
+  /** Times to ask each engine each prompt; answers vary between runs. */
+  runs: number;
 }
 
 export const DEFAULT_ENGINES = [
@@ -30,5 +32,6 @@ export function loadConfig(path: string): CmoConfig {
     competitors: raw.competitors ?? [],
     prompts: raw.prompts,
     engines: raw.engines ?? DEFAULT_ENGINES,
+    runs: raw.runs ?? 1,
   };
 }

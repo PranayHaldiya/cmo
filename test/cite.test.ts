@@ -46,6 +46,7 @@ describe("runCitations", () => {
     competitors: [rival],
     prompts: ["best deploy cli?", "how to ship fast?"],
     engines: ["fake/a", "fake/b"],
+    runs: 1,
   };
 
   it("records every answer and survives a failing engine", async () => {
@@ -70,6 +71,15 @@ describe("runCitations", () => {
 
     const rows = ledger.db.prepare("SELECT COUNT(*) AS n, SUM(cited) AS cited FROM citation_checks WHERE run_id = ?").get(summary.runId);
     assert.deepEqual({ ...rows }, { n: 3, cited: 2 });
+    ledger.close();
+  });
+
+  it("asks each prompt once per run", async () => {
+    const ledger = new Ledger(":memory:");
+    let calls = 0;
+    const summary = await runCitations({ ...config, runs: 3 }, async () => (calls++, { text: "", sources: [] }), ledger);
+    assert.equal(calls, 12);
+    assert.equal(summary.shareOfVoice.find((r) => r.engine === "all")!.answers, 12);
     ledger.close();
   });
 });

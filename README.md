@@ -4,7 +4,7 @@
 
 Bring your own API keys. Runs in your repo. No credits, no dashboard to log into.
 
-> Status: early. Citation checks, the URL-to-source mapper and the attribution ledger work; fix PRs and the Action are next. See [PLAN.md](PLAN.md).
+> Status: early. Citation checks, the site audit, the URL-to-source mapper and the attribution ledger work; fix PRs and the Action are next. See [PLAN.md](PLAN.md).
 
 ## Why
 
@@ -38,6 +38,30 @@ One [Vercel AI Gateway](https://vercel.com/ai-gateway) key covers every engine: 
 ```
 
 "Cited" means one of your URLs was among the answer's sources; "named" means the brand appeared in the answer at all. Every answer, its sources and cost go into `.cmo/ledger.db`. If web search fails, the check is marked failed rather than recorded as an answer written from memory.
+
+## Audit what keeps engines from citing you
+
+```sh
+node src/cli.ts audit https://astro.build -r path/to/astro.build-repo
+```
+
+```
+WARN  jsonld-missing             /agencies/bejamas/
+      No JSON-LD structured data.
+      → src/pages/agencies/[slug].astro, src/content/agencies/bejamas.md
+WARN  llms-txt-missing           /llms.txt
+      No /llms.txt. It gives AI assistants a short, curated map of your site.
+      → create:public/llms.txt
+```
+
+It reads pages the way most AI crawlers do, as served HTML without running JavaScript. It checks:
+- whether `robots.txt` blocks AI search crawlers, which stops citations, or only training crawlers, which is a legitimate choice;
+- `llms.txt` and the sitemap;
+- `noindex`, title, description, canonical and Open Graph tags;
+- JSON-LD: that it parses, and that the home page describes the organization;
+- `<h1>`, and pages whose content only renders client-side.
+
+With `-r`, each finding names the files to change: metadata fixes point at the file that owns the page's metadata (the page or its nearest layout), and content fixes point at the page and its markdown file. The command exits non-zero on errors, so it can gate CI.
 
 ## Try the mapper
 

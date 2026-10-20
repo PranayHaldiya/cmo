@@ -32,7 +32,9 @@ export async function runCitations(
   opts: { concurrency?: number; onResult?: (r: CheckResult) => void } = {},
 ): Promise<Summary> {
   const runId = randomUUID();
-  const jobs = config.engines.flatMap((engine) => config.prompts.map((prompt) => ({ engine, prompt })));
+  const jobs = config.engines.flatMap((engine) =>
+    config.prompts.flatMap((prompt) => Array.from({ length: config.runs }, () => ({ engine, prompt }))),
+  );
   const results: CheckResult[] = [];
 
   await pool(jobs, opts.concurrency ?? 4, async ({ engine, prompt }) => {

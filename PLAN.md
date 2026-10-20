@@ -14,8 +14,10 @@ Positioning: the open, repo-native loop of **track → fix PR → prove**. Not a
 - [x] M0 ledger schema + before/after fix impact
 - [x] M1 `cmo cite`: prompt set × engines with web search (AI Gateway or direct keys), cited vs named detection, competitors, ledger. Verified live on Anthropic.
 - [ ] M1 verify OpenAI, Gemini and Perplexity engines live (needs a gateway key)
-- [ ] M1 repeat runs per prompt (answers vary between runs) and report rates with sample size
-- [ ] M1 `cmo audit`: a small set of AI-readiness checks (llms.txt, robots AI crawlers, JSON-LD, meta), each tied to a located file
+- [x] M1 repeat runs per prompt (`--runs`)
+- [x] M1 `cmo audit`: robots (AI search vs training bots, RFC 9309 matching), llms.txt, sitemap, noindex, head tags, JSON-LD, h1, thin/client-rendered HTML; findings name files via the mapper. Verified live on astro.build (with repo) and okara.ai
+- [ ] M1 audit: sample sitemap pages by section instead of taking the first N (okara.ai's first entries are legal pages)
+- [ ] M1 mapper: content lookup by slug can pick a file from the wrong collection (astro.build /agencies/join → content/pages/agencies/join.mdx); read getCollection/getStaticPaths to narrow it
 - [ ] M2 `cmo fix`: deterministic fixes (llms.txt, robots, JSON-LD, metadata) applied as edits, then `gh pr create`
 - [ ] M2 Search Console import (daily per-page clicks) into the ledger
 - [ ] M3 GitHub Action (weekly): cite → audit → open PRs → comment impact on merged PRs
